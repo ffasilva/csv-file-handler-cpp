@@ -1,2 +1,3 @@
-# csv-file-handler-cpp
-A simple C++ to handle CSV files.
+# CSV File Handler
+
+A simple C++ class to handle CSV files.
