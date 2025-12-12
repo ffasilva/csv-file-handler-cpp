@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.4)
 
 project(file_handlers)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 14)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -51,4 +51,15 @@ INSTALL(DIRECTORY
 INSTALL(DIRECTORY
     src/
     DESTINATION "src/file_handlers"
+)
+
+################################################################
+# ADD EXECUTABLES FOR THE EXAMPLES
+################################################################
+add_executable(test_save_csv
+    examples/test_save_csv.cpp
+    )
+
+TARGET_LINK_LIBRARIES(test_save_csv
+    ${PROJECT_NAME}
 )
