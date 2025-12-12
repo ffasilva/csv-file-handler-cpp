@@ -35,8 +35,8 @@ namespace File_handlers
 /**
  * @brief Checkes whether the file ends with the proper extension.
  */
-bool check_file_extension(const std::string& file_name,
-                          const std::string& file_extension)
+bool CSVHandler::check_file_extension(const std::string& file_name,
+                                      const std::string& file_extension)
 {
     // Check whether the file extension string is longer than the full
     // file name
@@ -55,10 +55,12 @@ bool check_file_extension(const std::string& file_name,
 *****************************************************************/
 
 /**
- * @brief By default, the output file is named "output.csv".
+ * @brief By default, the output file is named "output.csv" and opens in
+ *        append mode.
  * @param file_name A string representing the file name.
+ * @param (optional) mode A MODE representing the file openig mode.
  */
-CSVHandler::CSVHandler(std::string file_name)
+CSVHandler::CSVHandler(const std::string &file_name, const MODE &mode)
 {
     // Check whether the file has the proper extension, and append it
     // otherwise
@@ -68,30 +70,40 @@ CSVHandler::CSVHandler(std::string file_name)
     else
         file_name_ = file_name + file_extension;
 
-    // Create the file and checks whether it worked
-    //std::ofstream output_file;ß
-    try {
-        //std::ofstream file(file_name_, std::ios::app);
-        file_ptr_ = std::make_unique<std::ofstream>(file_name,
-                                                    std::ios::app);
-        std::cout << "Found a file with the name " << file_name << "!"
-                  << std::endl;
-        std::cout << "Openning it in append mode..." << std::endl;
-
-        if (!file_ptr_->is_open())
-            std::cerr << "Failed to open the output file!" << std::endl;
-
-        //file_ptr_ = std::make_shared<std::ofstream>(file);
-        //file_ptr_ = std::move(std::make_unique<std::ofstream>(file));
-    } catch (...) {
-        //std::ofstream file(file_name_);
-
-        file_ptr_ = std::make_unique<std::ofstream>(file_name);
-        if (!file_ptr_->is_open())
-            std::cerr << "Failed to open the output file!" << std::endl;
-
-        //file_ptr_ = std::make_shared<std::ofstream>(file);
+    // Open the file in the desired mode and checks whether it worked
+    mode_ = mode;
+    switch (mode_){
+    case MODE::OVERWRITE:
+        output_file_ptr_ = std::make_unique<std::ofstream>(file_name,
+                                                           std::ios::trunc);
+        break;
+    case MODE::APPEND:
+        output_file_ptr_ = std::make_unique<std::ofstream>(file_name,
+                                                           std::ios::app);
+        break;
+    case MODE::READ:
+        input_file_ptr_ = std::make_unique<std::ifstream>(file_name,
+                                                          std::ios::in);
+        break;
     }
+
+    switch (mode_){
+        case MODE::READ:
+            if (!input_file_ptr_->is_open())
+                throw std::runtime_error("Failed to open the input file!");
+            break;
+        default:
+            if (!output_file_ptr_->is_open())
+                throw std::runtime_error("Failed to open the output file!");
+    }
+}
+
+/**
+ * @brief Class destructor.
+ */
+CSVHandler::~CSVHandler()
+{
+    this->close_file();
 }
 
 /**
@@ -107,7 +119,6 @@ void CSVHandler::set_safe_mode (const bool& safe_mode)
     safe_mode_ = safe_mode;
 }
 
-
 /**
  * @brief Closes the file. This method olnly needs to be used if not using safe
  *        mode (true by default). In safe mode, the file is closed after any
@@ -117,7 +128,13 @@ void CSVHandler::set_safe_mode (const bool& safe_mode)
  */
 void CSVHandler::close_file()
 {
-    file_ptr_->close();
+    switch (mode_){
+    case MODE::READ:
+        input_file_ptr_->close();
+        break;
+    default:
+        output_file_ptr_->close();
+    }
 }
 
 /**
@@ -126,20 +143,20 @@ void CSVHandler::close_file()
  */
 void CSVHandler::set_header(const std::vector<std::string>& header)
 {
-    header_.push_back(header);
+    header_.push_back(header); // std::vector<std::vector<std::string>> header_;
 
     // Write the header
-    for (const auto& row : header){
+    for (const auto& row : header_){
         for (size_t i = 0; i < row.size(); ++i){
-            *file_ptr_ << row[i];
-            if (i != row.size() - 1) *file_ptr_ << ",";
+            *output_file_ptr_ << row[i];
+            if (i != row.size() - 1) *output_file_ptr_ << ",";
         }
-        *file_ptr_ << "\n";
+        *output_file_ptr_ << "\n";
     }
 
     // Close the file (so it preserves the data if the user stops the execution)
     if (safe_mode_)
-        file_ptr_->close();
+        output_file_ptr_->close();
 }
 
 /**
@@ -148,25 +165,49 @@ void CSVHandler::set_header(const std::vector<std::string>& header)
  */
 void CSVHandler::save_data(const std::vector<std::string>& data)
 {
+    if (!header_.empty() && (data.size() != header_.at(0).size())){
+        std::cerr << "Mismatch between data and header sizes! "
+                     "Header size: " << header_.at(0).size() <<
+                      ". Data size: " << data.size() << std::endl;
+    }
     std::vector<std::vector<std::string>> output_data;
     output_data.push_back(data);
 
     // Open the output file to append it
     if (safe_mode_)
-        std::ofstream file(file_name_, std::ios::app);
+        output_file_ptr_->open(file_name_, std::ios::app);
 
     // Write the data
-    for (const auto& row : data) {
+    for (const auto& row : output_data) {
         for (size_t i = 0; i < row.size(); ++i) {
-            *file_ptr_ << row[i];
-            if (i != row.size() - 1) *file_ptr_ << ",";
+            *output_file_ptr_ << row[i];
+            if (i != row.size() - 1) *output_file_ptr_ << ",";
         }
-        *file_ptr_ << "\n";
+        *output_file_ptr_ << "\n";
     }
 
     // Close the file (so it preserves the data if the user stops the execution)
     if (safe_mode_)
-        file_ptr_->close();
+        output_file_ptr_->close();
 }
+
+// /**
+//  * @brief Gets the header from the input file.
+//  * @return A vector of strings containing the file header.
+//  */
+// // https://medium.com/@ryan_forrester_/reading-csv-files-in-c-how-to-guide-35030eb378ad
+// // https://www.geeksforgeeks.org/cpp/csv-file-management-using-c/
+// // https://stackoverflow.com/questions/1120140/how-can-i-read-and-parse-csv-files-in-c
+// std::vector<std::vector<std::string>> CSVHandler::read_data(
+//     const bool &ignore_header) const
+// {
+//     std::vector<std::string> row;
+//     std::string line, temp;
+//     std::getline(*input_file_ptr_, line);
+//     while (*input_file_ptr_ >> temp)
+//     {
+//         //
+//     }
+// }
 
 }// File_handlers namespace

@@ -31,26 +31,37 @@ namespace File_handlers
 
 class CSVHandler
 {
-private:
-    std::string file_name_ = "output.csv";
-    std::vector<std::vector<std::string>> header_;
-    //std::shared_ptr<std::ofstream> file_ptr_;
-    std::unique_ptr<std::ofstream> file_ptr_;
-
-    bool safe_mode_ = true;
-protected:
-    bool check_file_extension(const std::string& file_name,
-                              const std::string& file_extension);
 public:
+    enum MODE{
+        OVERWRITE,
+        APPEND,
+        READ
+    };
+
     CSVHandler() = delete;
-    CSVHandler(std::string file_name);
-    virtual ~CSVHandler() = default;
+    CSVHandler(const std::string& file_name, const MODE& mode = MODE::APPEND);
+    ~CSVHandler();
 
     void set_safe_mode (const bool& safe_mode);
     void close_file();
 
     void set_header(const std::vector<std::string>& header);
     void save_data(const std::vector<std::string>& data);
+
+    // std::vector<std::vector<std::string>> read_data(
+    //     const bool& ignore_header = false) const;
+protected:
+    bool check_file_extension(const std::string& file_name,
+                              const std::string& file_extension);
+private:
+    std::string file_name_ = "output.csv";
+    std::vector<std::vector<std::string>> header_;
+    std::unique_ptr<std::ofstream> output_file_ptr_;
+    std::unique_ptr<std::ifstream> input_file_ptr_;
+    MODE mode_;
+    // std::ios_base::openmode mode_;
+
+    bool safe_mode_ = true;
 };
 
 }// File_handlers namespace
