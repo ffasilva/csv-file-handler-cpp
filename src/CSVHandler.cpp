@@ -69,25 +69,28 @@ CSVHandler::CSVHandler(std::string file_name)
         file_name_ = file_name + file_extension;
 
     // Create the file and checks whether it worked
-    std::ofstream output_file;
+    //std::ofstream output_file;ß
     try {
-        std::ofstream file(file_name_, std::ios::app);
+        //std::ofstream file(file_name_, std::ios::app);
+        file_ptr_ = std::make_unique<std::ofstream>(file_name,
+                                                    std::ios::app);
         std::cout << "Found a file with the name " << file_name << "!"
                   << std::endl;
         std::cout << "Openning it in append mode..." << std::endl;
 
-
-        if (!file.is_open())
+        if (!file_ptr_->is_open())
             std::cerr << "Failed to open the output file!" << std::endl;
 
-        file_ptr_ = std::make_shared<std::ofstream>(file);
+        //file_ptr_ = std::make_shared<std::ofstream>(file);
+        //file_ptr_ = std::move(std::make_unique<std::ofstream>(file));
     } catch (...) {
-        std::ofstream file(file_name_);
+        //std::ofstream file(file_name_);
 
-        if (!file.is_open())
+        file_ptr_ = std::make_unique<std::ofstream>(file_name);
+        if (!file_ptr_->is_open())
             std::cerr << "Failed to open the output file!" << std::endl;
 
-        file_ptr_ = std::make_shared<std::ofstream>(file);
+        //file_ptr_ = std::make_shared<std::ofstream>(file);
     }
 }
 

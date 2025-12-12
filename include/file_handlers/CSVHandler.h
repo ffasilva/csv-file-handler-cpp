@@ -34,7 +34,8 @@ class CSVHandler
 private:
     std::string file_name_ = "output.csv";
     std::vector<std::vector<std::string>> header_;
-    std::shared_ptr<std::ofstream> file_ptr_;
+    //std::shared_ptr<std::ofstream> file_ptr_;
+    std::unique_ptr<std::ofstream> file_ptr_;
 
     bool safe_mode_ = true;
 protected:
