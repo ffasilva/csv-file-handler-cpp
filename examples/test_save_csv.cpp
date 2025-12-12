@@ -22,9 +22,38 @@ Contributors to this file:
 
 #include <file_handlers/CSVHandler.h>
 
+#include <iostream>
+
 using namespace std;
+using namespace File_handlers;
 
 int main()
 {
+    // Create the output file (safe mode by default)
+    string file_name = "output.csv";
+    CSVHandler file("output.csv", CSVHandler::MODE::OVERWRITE);
+
+    // Set its header
+    std::vector<std::string> header({"h1",
+                                     "h2",
+                                     "h3",
+                                     "h4"});
+    file.set_header(header);
+
+    // Generate some data and save it
+    std::vector<std::string> data({std::to_string(0),
+                                   std::to_string(1),
+                                   std::to_string(2),
+                                   std::to_string(3)});
+    file.save_data(data);
+
+    std::vector<std::string> more_data({"a",
+                                        "b",
+                                        "c",
+                                        "d"});
+    file.save_data(more_data);
+
+    cout << "Sucessfully stored the data in " + file_name + "!" << endl;
+
     return 0;
 }
