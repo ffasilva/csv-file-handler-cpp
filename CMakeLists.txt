@@ -63,3 +63,11 @@ add_executable(test_save_csv
 TARGET_LINK_LIBRARIES(test_save_csv
     ${PROJECT_NAME}
 )
+
+add_executable(test_read_csv
+    examples/test_read_csv.cpp
+    )
+
+TARGET_LINK_LIBRARIES(test_read_csv
+    ${PROJECT_NAME}
+)

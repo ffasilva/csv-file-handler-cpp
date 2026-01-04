@@ -48,8 +48,8 @@ public:
     void set_header(const std::vector<std::string>& header);
     void save_data(const std::vector<std::string>& data);
 
-    // std::vector<std::vector<std::string>> read_data(
-    //     const bool& ignore_header = false) const;
+    std::vector<std::vector<std::string>> read_data(
+        const bool& ignore_header = false) const;
 protected:
     bool check_file_extension(const std::string& file_name,
                               const std::string& file_extension);

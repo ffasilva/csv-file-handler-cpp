@@ -24,6 +24,7 @@ Contributors to this file:
 
 #include <fstream>
 #include <iostream>
+#include <sstream>
 
 namespace File_handlers
 {
@@ -191,23 +192,38 @@ void CSVHandler::save_data(const std::vector<std::string>& data)
         output_file_ptr_->close();
 }
 
-// /**
-//  * @brief Gets the header from the input file.
-//  * @return A vector of strings containing the file header.
-//  */
-// // https://medium.com/@ryan_forrester_/reading-csv-files-in-c-how-to-guide-35030eb378ad
-// // https://www.geeksforgeeks.org/cpp/csv-file-management-using-c/
-// // https://stackoverflow.com/questions/1120140/how-can-i-read-and-parse-csv-files-in-c
-// std::vector<std::vector<std::string>> CSVHandler::read_data(
-//     const bool &ignore_header) const
-// {
-//     std::vector<std::string> row;
-//     std::string line, temp;
-//     std::getline(*input_file_ptr_, line);
-//     while (*input_file_ptr_ >> temp)
-//     {
-//         //
-//     }
-// }
+/**
+ * @brief Gets the data from the input file. This method was inspired
+ *        on the ryan's Medium guide:
+ *          https://medium.com/@ryan_forrester_/reading-csv-files-in-c-how-to-guide-35030eb378ad
+ * @return A vector of vectors of strings. For an output vector 'data',
+ *         data[0] contains a vector containing the first line of the
+ *         input file. As such, data[0][0] contains the first cell of
+ *         the input file.
+ */
+std::vector<std::vector<std::string>> CSVHandler::read_data(
+    const bool &ignore_header) const
+{
+    // Read the data, line by line
+    std::vector<std::vector<std::string>> data;
+    std::string line;
+    bool header_already_ignored = false;
+    while (std::getline(*input_file_ptr_, line)){
+        std::vector<std::string> row;
+        std::stringstream ss(line);
+        std::string cell;
+
+        while (std::getline(ss, cell, ',')){
+            row.push_back(cell);
+        }
+
+        if (ignore_header && !header_already_ignored)
+            header_already_ignored = true;
+        else
+            data.push_back(row);
+    }
+
+    return data;
+}
 
 }// File_handlers namespace
